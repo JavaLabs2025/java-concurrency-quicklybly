@@ -7,55 +7,63 @@ import org.labs.common.Config;
 import org.labs.common.Spoon;
 import org.labs.common.Statistic;
 import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Student implements Runnable {
 
+    private static final Logger logger = LoggerFactory.getLogger(Student.class);
+
     private final Integer id;
     private final Statistic statistic;
-    private final Spoon leftSpoon;
-    private final Spoon rightSpoon;
+    private final Spoon firstSpoon;
+    private final Spoon secondSpoon;
     private final BlockingQueue<CompletableFuture<SoupOrderStatus>> orders;
 
-    public Student(Integer id, Statistic statistic, Spoon leftSpoon, Spoon rightSpoon, BlockingQueue<CompletableFuture<SoupOrderStatus>> orders) {
+    public Student(Integer id, Statistic statistic, Spoon firstSpoon, Spoon secondSpoon, BlockingQueue<CompletableFuture<SoupOrderStatus>> orders) {
         this.id = id;
         this.statistic = statistic;
-        this.leftSpoon = leftSpoon;
-        this.rightSpoon = rightSpoon;
+        this.firstSpoon = firstSpoon;
+        this.secondSpoon = secondSpoon;
         this.orders = orders;
     }
 
     @Override
     public void run() {
-        var name = Thread.currentThread().getName();
         try {
             while (true) {
                 try {
                     speak();
 
-                    synchronized (leftSpoon) {
-                        System.out.println(name + " took spoon with id: " + leftSpoon.getId());
-                        synchronized (rightSpoon) {
-                            System.out.println(name + " took spoon with id: " + rightSpoon.getId());
+                    synchronized (firstSpoon) {
+                        logger.debug("Student {} took spoon with id: {}", id, firstSpoon.getId());
+                        synchronized (secondSpoon) {
+                            logger.debug("Student {} took spoon with id: {}", id, secondSpoon.getId());
+
                             CompletableFuture<SoupOrderStatus> order = new CompletableFuture<>();
                             orders.put(order);
 
                             var orderStatus = order.get();
 
                             if (orderStatus == SoupOrderStatus.OUT_OF_SOUP) {
+                                logger.info("no more food for {}, leaving restaurant", id);
                                 return;
                             }
 
                             Thread.sleep(Config.TIME_TO_EAT_SOUP_MS);
                             statistic.addStudentStatistic(id);
                         }
+                        logger.debug("Student {} put down spoon with id: {}", id, secondSpoon.getId());
                     }
-                    // todo execution ex
+                    logger.debug("Student {} put down spoon with id: {}", id, firstSpoon.getId());
                 } catch (ExecutionException e) {
-                    Thread.currentThread().interrupt();
+                    // should not happen
+                    logger.error("Student {} received error, stopping", id, e);
                     return;
                 }
             }
         } catch (InterruptedException e) {
+            logger.warn("Student {} was interrupted", id);
             Thread.currentThread().interrupt();
         }
     }

@@ -15,10 +15,7 @@ public class DiningStudents {
     public static void main(String[] args) {
         var statistic = new Statistic(Config.NUMBER_OF_STUDENTS, Config.NUMBER_OF_WAITERS);
 
-        List<Spoon> spoons = new ArrayList<>(Config.NUMBER_OF_STUDENTS);
-        for (int i = 0; i < Config.NUMBER_OF_STUDENTS; ++i) {
-            spoons.add(new Spoon(i));
-        }
+        List<Spoon> spoons = createSpoons(Config.NUMBER_OF_STUDENTS);
 
         Kitchen kitchen = new Kitchen();
 
@@ -27,31 +24,8 @@ public class DiningStudents {
                 false
         );
 
-        List<Thread> waiters = new ArrayList<>(Config.NUMBER_OF_WAITERS);
-        for (int i = 0; i < Config.NUMBER_OF_WAITERS; ++i) {
-            var waiterRunnable = new Waiter(i, orders, kitchen, statistic);
-            var waiterThread = new Thread(waiterRunnable);
-            waiterThread.start();
-            waiters.add(waiterThread);
-        }
-
-        List<Thread> students = new ArrayList<>(Config.NUMBER_OF_STUDENTS);
-        for (int i = 0; i < Config.NUMBER_OF_STUDENTS; ++i) {
-            // debug i == zero case
-            int leftSpoonId = i != Config.NUMBER_OF_STUDENTS - 1 ?
-                    i == 0 ? Config.NUMBER_OF_STUDENTS - 1 : i - 1 : i;
-            int rightSpoonId = i != Config.NUMBER_OF_STUDENTS - 1 ? i : i - 1;
-            var studentRunnable = new Student(
-                    i,
-                    statistic,
-                    spoons.get(leftSpoonId),
-                    spoons.get(rightSpoonId),
-                    orders
-            );
-            var studentThread = new Thread(studentRunnable);
-            studentThread.start();
-            students.add(studentThread);
-        }
+        List<Thread> waiters = createAndStartWaiters(Config.NUMBER_OF_WAITERS, orders, kitchen, statistic);
+        List<Thread> students = createAndStartStudents(Config.NUMBER_OF_STUDENTS, spoons, statistic, orders);
 
         students.forEach((thread -> {
                     try {
@@ -63,29 +37,56 @@ public class DiningStudents {
         );
         waiters.forEach(Thread::interrupt);
 
-        printStatistic(statistic);
+        statistic.printStatistic();
     }
 
-    private static void printStatistic(Statistic statistic) {
-        StringBuilder sb = new StringBuilder("Statistic:\nStudents: [");
-
+    private static List<Spoon> createSpoons(int numberOfSpoons) {
+        List<Spoon> spoons = new ArrayList<>(numberOfSpoons);
         for (int i = 0; i < Config.NUMBER_OF_STUDENTS; ++i) {
-            sb.append(statistic.getStudentStatistic(i));
-            if (i != Config.NUMBER_OF_STUDENTS - 1) {
-                sb.append(", ");
-            }
+            spoons.add(new Spoon(i));
         }
+        return spoons;
+    }
 
-        sb.append("]\nWaiters: [");
-
-        for (int i = 0; i < Config.NUMBER_OF_WAITERS; ++i) {
-            sb.append(statistic.getWaiterStatistic(i));
-            if (i != Config.NUMBER_OF_WAITERS - 1) {
-                sb.append(", ");
-            }
+    private static List<Thread> createAndStartWaiters(
+            int numberOfWaiters,
+            BlockingQueue<CompletableFuture<SoupOrderStatus>> orders,
+            Kitchen kitchen,
+            Statistic statistic
+    ) {
+        List<Thread> waiters = new ArrayList<>(numberOfWaiters);
+        for (int i = 0; i < numberOfWaiters; ++i) {
+            var waiterRunnable = new Waiter(i, orders, kitchen, statistic);
+            var waiterThread = new Thread(waiterRunnable);
+            waiterThread.start();
+            waiters.add(waiterThread);
         }
-        sb.append("]");
+        return waiters;
+    }
 
-        System.out.println(sb);
+    private static List<Thread> createAndStartStudents(
+            int numberOfStudents,
+            List<Spoon> spoons,
+            Statistic statistic,
+            BlockingQueue<CompletableFuture<SoupOrderStatus>> orders
+    ) {
+        List<Thread> students = new ArrayList<>(numberOfStudents);
+        for (int i = 0; i < numberOfStudents; ++i) {
+            // all students except for the last should take left spoon first
+            int firstSpoonId = i != Config.NUMBER_OF_STUDENTS - 1 ?
+                    i == 0 ? Config.NUMBER_OF_STUDENTS - 1 : i - 1 : i;
+            int secondSpoonId = i != Config.NUMBER_OF_STUDENTS - 1 ? i : i - 1;
+            var studentRunnable = new Student(
+                    i,
+                    statistic,
+                    spoons.get(firstSpoonId),
+                    spoons.get(secondSpoonId),
+                    orders
+            );
+            var studentThread = new Thread(studentRunnable);
+            studentThread.start();
+            students.add(studentThread);
+        }
+        return students;
     }
 }

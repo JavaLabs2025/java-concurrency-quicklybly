@@ -4,8 +4,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import org.labs.common.Statistic;
 import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Waiter implements Runnable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Waiter.class);
 
     private final Integer id;
     private final BlockingQueue<CompletableFuture<SoupOrderStatus>> orders;
@@ -19,7 +23,6 @@ public class Waiter implements Runnable {
         this.statistic = statistic;
     }
 
-    // Почитать про реордеринг условия в while
     @Override
     public void run() {
         try {
@@ -34,19 +37,14 @@ public class Waiter implements Runnable {
                     if (orderStatus != SoupOrderStatus.OUT_OF_SOUP) {
                         statistic.addWaiterStatistic(id);
                     }
-                } catch (InterruptedException e) {
-                    if (order != null) {
-                        order.completeExceptionally(e);
-                    }
-                    Thread.currentThread().interrupt();
-                    throw e;
                 } finally {
                     if (order != null) {
-                        order.completeExceptionally(new RuntimeException("bla-bla"));
+                        order.complete(SoupOrderStatus.OUT_OF_SOUP);
                     }
                 }
             }
         } catch (InterruptedException e) {
+            logger.info("Waiter {} was interrupted", id);
             Thread.currentThread().interrupt();
         }
     }

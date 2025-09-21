@@ -3,8 +3,13 @@ package org.labs.common;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Statistic {
+
+    private static final Logger logger = LoggerFactory.getLogger(Statistic.class);
+
     private final List<AtomicInteger> studentStatistic;
     private final List<AtomicInteger> waiterStatistic;
 
@@ -29,11 +34,26 @@ public class Statistic {
         waiterStatistic.get(waiterId).incrementAndGet();
     }
 
-    public Integer getStudentStatistic(int studentId) {
-        return studentStatistic.get(studentId).get();
-    }
+    public void printStatistic() {
+        StringBuilder sb = new StringBuilder("Statistic:\nStudents: [");
 
-    public Integer getWaiterStatistic(int waiterId) {
-        return waiterStatistic.get(waiterId).get();
+        for (int i = 0; i < Config.NUMBER_OF_STUDENTS; ++i) {
+            sb.append(studentStatistic.get(i).get());
+            if (i != Config.NUMBER_OF_STUDENTS - 1) {
+                sb.append(", ");
+            }
+        }
+
+        sb.append("]\nWaiters: [");
+
+        for (int i = 0; i < Config.NUMBER_OF_WAITERS; ++i) {
+            sb.append(waiterStatistic.get(i).get());
+            if (i != Config.NUMBER_OF_WAITERS - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("]");
+
+        logger.info(sb.toString());
     }
 }
