@@ -1,18 +1,21 @@
 package org.labs.orderedlocks;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import org.labs.common.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Kitchen {
 
     private static final Logger log = LoggerFactory.getLogger(Kitchen.class);
-    private final AtomicInteger soupCount = new AtomicInteger(Config.NUMBER_OF_SOUP);
+    private final AtomicInteger soupCount;
 
     public enum SoupOrderStatus {
         OK,
         OUT_OF_SOUP,
+    }
+
+    public Kitchen(int initialSoupCount) {
+        soupCount = new AtomicInteger(initialSoupCount);
     }
 
     public SoupOrderStatus getSoup() {

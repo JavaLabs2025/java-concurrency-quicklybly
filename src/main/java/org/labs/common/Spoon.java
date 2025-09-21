@@ -2,17 +2,16 @@ package org.labs.common;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Getter;
 
 public class Spoon {
+    @Getter
     private final Integer id;
-    private final Lock lock = new ReentrantLock(Config.FAIR_IF_POSSIBLE);
+    private final Lock lock;
 
-    public Spoon(int id) {
+    public Spoon(int id, boolean fairness) {
         this.id = id;
-    }
-
-    public Integer getId() {
-        return id;
+        lock = new ReentrantLock(fairness);
     }
 
     public void lock() {

@@ -37,18 +37,18 @@ public class Statistic {
     public void printStatistic() {
         StringBuilder sb = new StringBuilder("Statistic:\nStudents: [");
 
-        for (int i = 0; i < Config.NUMBER_OF_STUDENTS; ++i) {
+        for (int i = 0; i < studentStatistic.size(); ++i) {
             sb.append(studentStatistic.get(i).get());
-            if (i != Config.NUMBER_OF_STUDENTS - 1) {
+            if (i != studentStatistic.size() - 1) {
                 sb.append(", ");
             }
         }
 
         sb.append("]\nWaiters: [");
 
-        for (int i = 0; i < Config.NUMBER_OF_WAITERS; ++i) {
+        for (int i = 0; i < waiterStatistic.size(); ++i) {
             sb.append(waiterStatistic.get(i).get());
-            if (i != Config.NUMBER_OF_WAITERS - 1) {
+            if (i != waiterStatistic.size() - 1) {
                 sb.append(", ");
             }
         }

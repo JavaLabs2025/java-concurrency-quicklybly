@@ -13,26 +13,32 @@ import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DiningStudents {
+public class DiningStudentsSimulation {
 
-    private static final Logger log = LoggerFactory.getLogger(DiningStudents.class);
+    private static final Logger log = LoggerFactory.getLogger(DiningStudentsSimulation.class);
 
-    public static void main(String[] args) throws InterruptedException {
-        var statistic = new Statistic(Config.NUMBER_OF_STUDENTS, Config.NUMBER_OF_WAITERS);
+    private final Config config;
 
-        List<Spoon> spoons = createSpoons(Config.NUMBER_OF_STUDENTS);
+    public DiningStudentsSimulation(Config config) {
+        this.config = config;
+    }
 
-        Kitchen kitchen = new Kitchen();
+    public void simulate() throws InterruptedException {
+        var statistic = new Statistic(config.NUMBER_OF_STUDENTS, config.NUMBER_OF_WAITERS);
+
+        List<Spoon> spoons = createSpoons(config.NUMBER_OF_STUDENTS);
+
+        Kitchen kitchen = new Kitchen(config.NUMBER_OF_SOUP);
 
         BlockingQueue<CompletableFuture<SoupOrderStatus>> orders = new ArrayBlockingQueue<>(
-                Config.NUMBER_OF_SOUP + Config.NUMBER_OF_STUDENTS + 1,
-                Config.FAIR_IF_POSSIBLE
+                config.NUMBER_OF_SOUP + config.NUMBER_OF_STUDENTS + 1,
+                config.FAIR_IF_POSSIBLE
         );
 
-        List<Thread> waiters = createAndStartWaiters(Config.NUMBER_OF_WAITERS, orders, kitchen, statistic);
+        List<Thread> waiters = createAndStartWaiters(config.NUMBER_OF_WAITERS, orders, kitchen, statistic);
 
         var startTime = System.nanoTime();
-        List<Thread> students = createAndStartStudents(Config.NUMBER_OF_STUDENTS, spoons, statistic, orders);
+        List<Thread> students = createAndStartStudents(config.NUMBER_OF_STUDENTS, spoons, statistic, orders);
 
         students.forEach((thread -> {
                     try {
@@ -53,15 +59,15 @@ public class DiningStudents {
         log.info("Time: {} ms", TimeUnit.NANOSECONDS.toMillis(endTime - startTime));
     }
 
-    private static List<Spoon> createSpoons(int numberOfSpoons) {
+    private List<Spoon> createSpoons(int numberOfSpoons) {
         List<Spoon> spoons = new ArrayList<>(numberOfSpoons);
-        for (int i = 0; i < Config.NUMBER_OF_STUDENTS; ++i) {
-            spoons.add(new Spoon(i));
+        for (int i = 0; i < config.NUMBER_OF_STUDENTS; ++i) {
+            spoons.add(new Spoon(i, config.FAIR_IF_POSSIBLE));
         }
         return spoons;
     }
 
-    private static List<Thread> createAndStartWaiters(
+    private List<Thread> createAndStartWaiters(
             int numberOfWaiters,
             BlockingQueue<CompletableFuture<SoupOrderStatus>> orders,
             Kitchen kitchen,
@@ -77,7 +83,7 @@ public class DiningStudents {
         return waiters;
     }
 
-    private static List<Thread> createAndStartStudents(
+    private List<Thread> createAndStartStudents(
             int numberOfStudents,
             List<Spoon> spoons,
             Statistic statistic,
@@ -86,15 +92,17 @@ public class DiningStudents {
         List<Thread> students = new ArrayList<>(numberOfStudents);
         for (int i = 0; i < numberOfStudents; ++i) {
             // all students except for the last should take left spoon first
-            int firstSpoonId = i != Config.NUMBER_OF_STUDENTS - 1 ?
-                    i == 0 ? Config.NUMBER_OF_STUDENTS - 1 : i - 1 : i;
-            int secondSpoonId = i != Config.NUMBER_OF_STUDENTS - 1 ? i : i - 1;
+            int firstSpoonId = i != config.NUMBER_OF_STUDENTS - 1 ?
+                    i == 0 ? config.NUMBER_OF_STUDENTS - 1 : i - 1 : i;
+            int secondSpoonId = i != config.NUMBER_OF_STUDENTS - 1 ? i : i - 1;
             var studentRunnable = new Student(
                     i,
                     statistic,
                     spoons.get(firstSpoonId),
                     spoons.get(secondSpoonId),
-                    orders
+                    orders,
+                    config.TIME_TO_SPEAK_MS,
+                    config.TIME_TO_EAT_SOUP_MS
             );
             var studentThread = new Thread(studentRunnable);
             studentThread.start();

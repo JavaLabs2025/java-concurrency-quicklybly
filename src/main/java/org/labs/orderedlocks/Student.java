@@ -3,7 +3,6 @@ package org.labs.orderedlocks;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.labs.common.Config;
 import org.labs.common.Spoon;
 import org.labs.common.Statistic;
 import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
@@ -20,12 +19,25 @@ public class Student implements Runnable {
     private final Spoon secondSpoon;
     private final BlockingQueue<CompletableFuture<SoupOrderStatus>> orders;
 
-    public Student(Integer id, Statistic statistic, Spoon firstSpoon, Spoon secondSpoon, BlockingQueue<CompletableFuture<SoupOrderStatus>> orders) {
+    private final long speakTimeMs;
+    private final long eatTimeMs;
+
+    public Student(
+            Integer id,
+            Statistic statistic,
+            Spoon firstSpoon,
+            Spoon secondSpoon,
+            BlockingQueue<CompletableFuture<SoupOrderStatus>> orders,
+            long speakTimeMs,
+            long eatTimeMs
+    ) {
         this.id = id;
         this.statistic = statistic;
         this.firstSpoon = firstSpoon;
         this.secondSpoon = secondSpoon;
         this.orders = orders;
+        this.speakTimeMs = speakTimeMs;
+        this.eatTimeMs = eatTimeMs;
     }
 
     @Override
@@ -52,7 +64,7 @@ public class Student implements Runnable {
                                 return;
                             }
 
-                            Thread.sleep(Config.TIME_TO_EAT_SOUP_MS);
+                            Thread.sleep(eatTimeMs);
                             statistic.addStudentStatistic(id);
                         } finally {
                             secondSpoon.unlock();
@@ -75,6 +87,6 @@ public class Student implements Runnable {
     }
 
     private void speak() throws InterruptedException {
-        Thread.sleep(Config.TIME_TO_SPEAK_MS);
+        Thread.sleep(speakTimeMs);
     }
 }
