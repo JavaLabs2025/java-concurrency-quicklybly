@@ -1,4 +1,4 @@
-package org.labs.orderedlocks;
+package org.labs.semaphore;
 
 import java.util.concurrent.TimeUnit;
 import org.labs.common.Config;
@@ -18,7 +18,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @Measurement(iterations = 5)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class OrderedLocksTests {
+public class SemaphoreLocksTests {
 
     private final Config zeroDelayNonFairTest = Config.builder()
             .NUMBER_OF_STUDENTS(7)

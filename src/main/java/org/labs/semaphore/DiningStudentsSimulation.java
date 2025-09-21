@@ -1,4 +1,4 @@
-package org.labs.orderedlocks;
+package org.labs.semaphore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +19,11 @@ public class DiningStudentsSimulation {
     public static void main(String[] args) throws InterruptedException {
         var config = Config.builder()
                 .NUMBER_OF_STUDENTS(7)
-                .NUMBER_OF_SOUP(1_000_000)
+                .NUMBER_OF_SOUP(1_000_0)
                 .NUMBER_OF_WAITERS(2)
                 .TIME_TO_EAT_SOUP_MS(0)
                 .TIME_TO_SPEAK_MS(0)
-                .FAIR_IF_POSSIBLE(false)
+                .FAIR_IF_POSSIBLE(true)
                 .build();
         var diningStudents = new DiningStudentsSimulation(config);
         diningStudents.simulate();
@@ -39,6 +39,7 @@ public class DiningStudentsSimulation {
         var statistic = new Statistic(config.NUMBER_OF_STUDENTS, config.NUMBER_OF_WAITERS);
 
         List<Spoon> spoons = createSpoons(config.NUMBER_OF_STUDENTS);
+        var arbiter = new SpoonArbiter(config.NUMBER_OF_STUDENTS, config.FAIR_IF_POSSIBLE);
 
         Kitchen kitchen = new Kitchen(config.NUMBER_OF_SOUP);
 
@@ -50,7 +51,7 @@ public class DiningStudentsSimulation {
         List<Thread> waiters = createAndStartWaiters(config.NUMBER_OF_WAITERS, orders, kitchen, statistic);
 
         var startTime = System.nanoTime();
-        List<Thread> students = createAndStartStudents(config.NUMBER_OF_STUDENTS, spoons, statistic, orders);
+        List<Thread> students = createAndStartStudents(config.NUMBER_OF_STUDENTS, spoons, statistic, arbiter, orders);
 
         students.forEach((thread -> {
                     try {
@@ -99,19 +100,20 @@ public class DiningStudentsSimulation {
             int numberOfStudents,
             List<Spoon> spoons,
             Statistic statistic,
+            SpoonArbiter arbiter,
             BlockingQueue<CompletableFuture<SoupOrderStatus>> orders
     ) {
         List<Thread> students = new ArrayList<>(numberOfStudents);
         for (int i = 0; i < numberOfStudents; ++i) {
             // all students except for the last should take left spoon first
-            int firstSpoonId = i != config.NUMBER_OF_STUDENTS - 1 ?
-                    i == 0 ? config.NUMBER_OF_STUDENTS - 1 : i - 1 : i;
-            int secondSpoonId = i != config.NUMBER_OF_STUDENTS - 1 ? i : i - 1;
+            int firstSpoonId = i == 0 ? numberOfStudents - 1 : i - 1;
+            int secondSpoonId = i;
             var studentRunnable = new Student(
                     i,
                     statistic,
                     spoons.get(firstSpoonId),
                     spoons.get(secondSpoonId),
+                    arbiter,
                     orders,
                     config.TIME_TO_SPEAK_MS,
                     config.TIME_TO_EAT_SOUP_MS

@@ -94,3 +94,32 @@ OrderedLocksTests.zeroDelayNonFairTest  avgt    5  105.592 ± 27.446  ms/op
 |-------|--------------------------------------------|
 | false | [227, 433, 724, 1483, 1690, 5291, 152]     |
 | true  | [1179, 1301, 1249, 1333, 1434, 2322, 1182] |
+
+## 2. Использование арбитра
+
+Решение заключается в использовании специального класса-арбитра, который следит за числом одновременно едящих студентов,
+это число не должно превышать число студентов - 1. Этот инвариант реализуется через семафор.
+
+Решение находится в пакете semaphore.
+
+Аналогично `ReentrantLock` `Semaphore` имеет параметр `fair`, который вынесен в config.
+
+Это решение показывает более высокую честность, чем решение с упорядочиванием блокировок, даже при `fair = false`.
+
+| fair  | fairness array                             |
+|-------|--------------------------------------------|
+| false | [1430, 1424, 1446, 1437, 1454, 1436, 1373] |
+| true  | [1428, 1429, 1428, 1429, 1429, 1430, 1427] |
+
+При этом fairness для семафора тоже не бесплатная, для демонстрации этого эффекта был реализован JMH тест
+`SemaphoreLocksTests`, запуск аналогичен решению с упорядочиванием блокировок.
+
+Полные результаты:
+
+```text
+Benchmark                                                Mode  Cnt    Score    Error  Units
+o.l.orderedlocks.OrderedLocksTests.zeroDelayFairTest     avgt    5  170.558 ± 26.265  ms/op
+o.l.orderedlocks.OrderedLocksTests.zeroDelayNonFairTest  avgt    5  106.313 ±  9.687  ms/op
+o.l.semaphore.SemaphoreLocksTests.zeroDelayFairTest      avgt    5  157.910 ± 62.556  ms/op
+o.l.semaphore.SemaphoreLocksTests.zeroDelayNonFairTest   avgt    5  117.113 ± 25.536  ms/op
+```
