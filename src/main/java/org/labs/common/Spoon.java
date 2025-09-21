@@ -21,4 +21,8 @@ public class Spoon {
     public void unlock() {
         lock.unlock();
     }
+
+    public boolean tryLock() {
+        return lock.tryLock();
+    }
 }

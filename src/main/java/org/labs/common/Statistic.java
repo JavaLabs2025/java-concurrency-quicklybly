@@ -3,12 +3,10 @@ package org.labs.common;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Statistic {
-
-    private static final Logger log = LoggerFactory.getLogger(Statistic.class);
 
     private final List<AtomicInteger> studentStatistic;
     private final List<AtomicInteger> waiterStatistic;

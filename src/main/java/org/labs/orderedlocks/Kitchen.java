@@ -1,12 +1,11 @@
 package org.labs.orderedlocks;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Kitchen {
 
-    private static final Logger log = LoggerFactory.getLogger(Kitchen.class);
     private final AtomicInteger soupCount;
 
     public enum SoupOrderStatus {

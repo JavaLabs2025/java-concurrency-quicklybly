@@ -3,15 +3,13 @@ package org.labs.orderedlocks;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import org.labs.common.Spoon;
 import org.labs.common.Statistic;
 import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class Student implements Runnable {
-
-    private static final Logger log = LoggerFactory.getLogger(Student.class);
 
     private final Integer id;
     private final Statistic statistic;
