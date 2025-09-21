@@ -3,8 +3,9 @@ package org.labs.orderedlocks;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.labs.common.Kitchen;
 import org.labs.common.Statistic;
-import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
+import org.labs.common.Kitchen.SoupOrderStatus;
 
 @Slf4j
 public class Waiter implements Runnable {

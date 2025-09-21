@@ -3,12 +3,14 @@ package org.labs.orderedlocks;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.labs.common.Kitchen.SoupOrderStatus;
 import org.labs.common.Spoon;
 import org.labs.common.Statistic;
-import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
 
 @Slf4j
+@RequiredArgsConstructor
 public class Student implements Runnable {
 
     private final Integer id;
@@ -19,24 +21,6 @@ public class Student implements Runnable {
 
     private final long speakTimeMs;
     private final long eatTimeMs;
-
-    public Student(
-            Integer id,
-            Statistic statistic,
-            Spoon firstSpoon,
-            Spoon secondSpoon,
-            BlockingQueue<CompletableFuture<SoupOrderStatus>> orders,
-            long speakTimeMs,
-            long eatTimeMs
-    ) {
-        this.id = id;
-        this.statistic = statistic;
-        this.firstSpoon = firstSpoon;
-        this.secondSpoon = secondSpoon;
-        this.orders = orders;
-        this.speakTimeMs = speakTimeMs;
-        this.eatTimeMs = eatTimeMs;
-    }
 
     @Override
     public void run() {

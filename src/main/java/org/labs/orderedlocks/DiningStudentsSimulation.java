@@ -8,9 +8,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.labs.common.Config;
+import org.labs.common.Kitchen;
+import org.labs.common.Kitchen.SoupOrderStatus;
 import org.labs.common.Spoon;
 import org.labs.common.Statistic;
-import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
 
 @Slf4j
 public class DiningStudentsSimulation {
