@@ -105,7 +105,6 @@ public class DiningStudentsSimulation {
     ) {
         List<Thread> students = new ArrayList<>(numberOfStudents);
         for (int i = 0; i < numberOfStudents; ++i) {
-            // all students except for the last should take left spoon first
             int firstSpoonId = i == 0 ? numberOfStudents - 1 : i - 1;
             int secondSpoonId = i;
             var studentRunnable = new Student(
