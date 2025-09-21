@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class Statistic {
 
-    private static final Logger logger = LoggerFactory.getLogger(Statistic.class);
+    private static final Logger log = LoggerFactory.getLogger(Statistic.class);
 
     private final List<AtomicInteger> studentStatistic;
     private final List<AtomicInteger> waiterStatistic;
@@ -54,6 +54,6 @@ public class Statistic {
         }
         sb.append("]");
 
-        logger.info(sb.toString());
+        log.info(sb.toString());
     }
 }

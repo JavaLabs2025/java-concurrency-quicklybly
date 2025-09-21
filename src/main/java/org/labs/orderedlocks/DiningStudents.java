@@ -5,14 +5,19 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.labs.common.Config;
 import org.labs.common.Spoon;
 import org.labs.common.Statistic;
 import org.labs.orderedlocks.Kitchen.SoupOrderStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DiningStudents {
 
-    public static void main(String[] args) {
+    private static final Logger log = LoggerFactory.getLogger(DiningStudents.class);
+
+    public static void main(String[] args) throws InterruptedException {
         var statistic = new Statistic(Config.NUMBER_OF_STUDENTS, Config.NUMBER_OF_WAITERS);
 
         List<Spoon> spoons = createSpoons(Config.NUMBER_OF_STUDENTS);
@@ -21,10 +26,12 @@ public class DiningStudents {
 
         BlockingQueue<CompletableFuture<SoupOrderStatus>> orders = new ArrayBlockingQueue<>(
                 Config.NUMBER_OF_SOUP + Config.NUMBER_OF_STUDENTS + 1,
-                false
+                Config.FAIR_IF_POSSIBLE
         );
 
         List<Thread> waiters = createAndStartWaiters(Config.NUMBER_OF_WAITERS, orders, kitchen, statistic);
+
+        var startTime = System.nanoTime();
         List<Thread> students = createAndStartStudents(Config.NUMBER_OF_STUDENTS, spoons, statistic, orders);
 
         students.forEach((thread -> {
@@ -35,9 +42,15 @@ public class DiningStudents {
                     }
                 })
         );
-        waiters.forEach(Thread::interrupt);
+        var endTime = System.nanoTime();
+
+        for (var waiter : waiters) {
+            waiter.interrupt();
+            waiter.join();
+        }
 
         statistic.printStatistic();
+        log.info("Time: {} ms", TimeUnit.NANOSECONDS.toMillis(endTime - startTime));
     }
 
     private static List<Spoon> createSpoons(int numberOfSpoons) {

@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class Student implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(Student.class);
+    private static final Logger log = LoggerFactory.getLogger(Student.class);
 
     private final Integer id;
     private final Statistic statistic;
@@ -35,10 +35,12 @@ public class Student implements Runnable {
                 try {
                     speak();
 
-                    synchronized (firstSpoon) {
-                        logger.debug("Student {} took spoon with id: {}", id, firstSpoon.getId());
-                        synchronized (secondSpoon) {
-                            logger.debug("Student {} took spoon with id: {}", id, secondSpoon.getId());
+                    firstSpoon.lock();
+                    try {
+                        log.debug("Student {} took spoon with id: {}", id, firstSpoon.getId());
+                        secondSpoon.lock();
+                        try {
+                            log.debug("Student {} took spoon with id: {}", id, secondSpoon.getId());
 
                             CompletableFuture<SoupOrderStatus> order = new CompletableFuture<>();
                             orders.put(order);
@@ -46,24 +48,28 @@ public class Student implements Runnable {
                             var orderStatus = order.get();
 
                             if (orderStatus == SoupOrderStatus.OUT_OF_SOUP) {
-                                logger.info("no more food for {}, leaving restaurant", id);
+                                log.info("no more food for {}, leaving restaurant", id);
                                 return;
                             }
 
                             Thread.sleep(Config.TIME_TO_EAT_SOUP_MS);
                             statistic.addStudentStatistic(id);
+                        } finally {
+                            secondSpoon.unlock();
+                            log.debug("Student {} put down spoon with id: {}", id, secondSpoon.getId());
                         }
-                        logger.debug("Student {} put down spoon with id: {}", id, secondSpoon.getId());
+                    } finally {
+                        firstSpoon.unlock();
+                        log.debug("Student {} put down spoon with id: {}", id, firstSpoon.getId());
                     }
-                    logger.debug("Student {} put down spoon with id: {}", id, firstSpoon.getId());
                 } catch (ExecutionException e) {
                     // should not happen
-                    logger.error("Student {} received error, stopping", id, e);
+                    log.error("Student {} received error, stopping", id, e);
                     return;
                 }
             }
         } catch (InterruptedException e) {
-            logger.warn("Student {} was interrupted", id);
+            log.warn("Student {} was interrupted", id);
             Thread.currentThread().interrupt();
         }
     }

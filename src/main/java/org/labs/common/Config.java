@@ -8,6 +8,8 @@ public class Config {
     public static final long TIME_TO_EAT_SOUP_MS = 0;
     public static final long TIME_TO_SPEAK_MS = 0;
 
+    public static final boolean FAIR_IF_POSSIBLE = true;
+
     private Config() {
     }
 }

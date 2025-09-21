@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class Waiter implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(Waiter.class);
+    private static final Logger log = LoggerFactory.getLogger(Waiter.class);
 
     private final Integer id;
     private final BlockingQueue<CompletableFuture<SoupOrderStatus>> orders;
@@ -44,7 +44,7 @@ public class Waiter implements Runnable {
                 }
             }
         } catch (InterruptedException e) {
-            logger.info("Waiter {} was interrupted", id);
+            log.info("Waiter {} was interrupted", id);
             Thread.currentThread().interrupt();
         }
     }
